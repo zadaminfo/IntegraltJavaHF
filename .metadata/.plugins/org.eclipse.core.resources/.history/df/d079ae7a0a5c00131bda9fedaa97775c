@@ -1,0 +1,18 @@
+package zadam.ijfHF.defaultpackage;
+
+import java.util.Scanner;
+
+public class Main {
+
+	public static void main(String[] args) {
+
+		System.out.println("Hello world");
+
+		Scanner s = new Scanner(System.in);
+		try {
+			System.out.println(s.next());
+		} finally {
+			s.close();
+		}
+	}
+}

@@ -1,0 +1,23 @@
+package zadam.ijfHF.defaultpackage;
+
+import java.util.Scanner;
+
+import javax.persistence.*;
+
+public class Main {
+
+	public static void main(String[] args) {
+
+		System.out.println("Hello world");
+
+		Scanner s = new Scanner(System.in);
+		try {
+			System.out.println(s.next());
+		} finally {
+			s.close();
+		}
+		
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("Hello");
+		EntityManager em = emf.createEntityManager();
+	}
+}
