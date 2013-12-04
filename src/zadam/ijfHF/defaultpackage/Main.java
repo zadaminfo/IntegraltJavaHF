@@ -34,9 +34,9 @@ public class Main {
              *  Create project into the database
              */
             
-/*            Project project = new Project();
-            project.setName("Integralt fejlesztes JAVA platformon HF");
-            project.setDescription("Hazi feladat elkeszitese");
+            /*Project project = new Project();
+            project.setName("Karacsonyi ajandekozas");
+            project.setDescription("Otleteles, ajandekok beszerzese");
             
             em.persist(project);*/
             

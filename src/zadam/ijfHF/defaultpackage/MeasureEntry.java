@@ -90,4 +90,9 @@ public class MeasureEntry {
 	public void setUser(User user) {
 		this.user = user;
 	}
+	
+    @Override
+    public String toString() {
+    	return String.valueOf(duration) + " - " + creationDate;
+    }
 }

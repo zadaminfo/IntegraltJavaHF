@@ -67,4 +67,9 @@ public class Task {
 	public void setProject(Project project) {
 		this.project = project;
 	}
+	
+    @Override
+    public String toString() {
+    	return name;
+    }
 }
