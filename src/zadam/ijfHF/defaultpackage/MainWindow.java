@@ -138,10 +138,20 @@ public class MainWindow extends javax.swing.JFrame {
         btnEdit.setText("Edit");
         btnEdit.setEnabled(false);
         btnEdit.setName("btnEdit"); // NOI18N
+        btnEdit.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnEditMouseClicked(evt);
+            }
+        });
 
         btnRemove.setText("Remove");
         btnRemove.setEnabled(false);
         btnRemove.setName("btnRemove"); // NOI18N
+        btnRemove.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnRemoveMouseClicked(evt);
+            }
+        });
 
         btnDetails.setText("Details");
         btnDetails.setEnabled(false);
@@ -160,6 +170,11 @@ public class MainWindow extends javax.swing.JFrame {
         jlTasks.setDoubleBuffered(true);
         jlTasks.setEnabled(false);
         jlTasks.setName("jlTasks"); // NOI18N
+        jlTasks.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jlTasksMouseClicked(evt);
+            }
+        });
         jlTasks.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 jlTasksFocusGained(evt);
@@ -272,26 +287,17 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {                                    
         if (lastSelectedList == 0) {
-        DefaultListModel resultList = new DefaultListModel();
-        jlProjects.setModel(resultList);
-
-        for (int i = 0; i < 10; i++) {
-            resultList.addElement(String.valueOf(i));
-        }
+        	AddEditForm f = new AddEditForm(new Project());
+        	f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        	f.setVisible(true);
         } else if (lastSelectedList == 1) {
-            DefaultListModel resultList = new DefaultListModel();
-            jlTasks.setModel(resultList);
-
-            for (int i = 0; i < 10; i++) {
-                resultList.addElement(String.valueOf(i));
-            }
+        	AddEditForm f = new AddEditForm(new Task());
+        	f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        	f.setVisible(true);
         }else {
-            DefaultListModel resultList = new DefaultListModel();
-            jlMeasures.setModel(resultList);
-
-            for (int i = 0; i < 10; i++) {
-                resultList.addElement(String.valueOf(i));
-            }
+        	AddEditForm f = new AddEditForm(new MeasureEntry(), jtfUserName.getText());
+        	f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        	f.setVisible(true);
         }
     }                                   
 
@@ -313,6 +319,10 @@ public class MainWindow extends javax.swing.JFrame {
     	if (selectedProject == null) {
     		return;
     	}
+    	
+    	// Reset Measures' JList
+        DefaultListModel emptyList = new DefaultListModel();
+        jlMeasures.setModel(emptyList);
     	
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("Hello");
 		EntityManager em = emf.createEntityManager();
@@ -352,6 +362,141 @@ public class MainWindow extends javax.swing.JFrame {
         btnRemove.setEnabled(loggedIn);
         btnDetails.setEnabled(loggedIn);
     }                                     
+
+    private void jlTasksMouseClicked(java.awt.event.MouseEvent evt) {                                     
+    	Task selectedTask = (Task) jlTasks.getSelectedValue();
+    	
+    	if (selectedTask == null) {
+    		return;
+    	}
+    	
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("Hello");
+		EntityManager em = emf.createEntityManager();
+		
+        try {            
+            Query projectsQuery = em.createQuery("from MeasureEntry where Task_id = :myId");
+            projectsQuery.setParameter("myId", selectedTask.getId());
+            List measureList = projectsQuery.getResultList();
+            
+            DefaultListModel resultList = new DefaultListModel();
+            jlMeasures.setModel(resultList);
+
+            for (int i = 0; i < measureList.size(); i++) {
+                resultList.addElement(measureList.get(i));
+            }
+         
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally{
+            emf.close();
+        }
+    }                    
+    
+    private void btnRemoveMouseClicked(java.awt.event.MouseEvent evt) {     
+    	String tableName = "";
+    	int selectedItemId = -1;
+    	
+    	if (lastSelectedList == 0) {
+    		tableName = "Project";
+    		Project selectedProject = (Project) jlProjects.getSelectedValue();
+    		
+    		if (selectedProject == null) {
+    			return;
+    		}
+    		
+    		selectedItemId = selectedProject.getId();
+    	} else if (lastSelectedList == 1) {
+    		tableName = "Task";
+    		Task selectedTask = (Task) jlTasks.getSelectedValue();
+    		
+    		if (selectedTask == null) {
+    			return;
+    		}
+    		
+    		selectedItemId = selectedTask.getId();
+    	} else {
+    		tableName = "MeasureEntry";
+    		MeasureEntry selectedMeasure = (MeasureEntry) jlMeasures.getSelectedValue();
+    		
+    		if (selectedMeasure == null) {
+    			return;
+    		}
+    		
+    		selectedItemId = selectedMeasure.getId();
+    	}
+    	
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("Hello");
+		EntityManager em = emf.createEntityManager();
+		
+        try {            
+            Query query = em.createQuery("from " + tableName + " where id = :myId");
+            query.setParameter("myId", selectedItemId);
+            List measureList = query.getResultList();
+            
+            if (measureList.size() <= 0) {
+            	return;
+            }
+            
+            em.getTransaction().begin();
+            
+        	if (lastSelectedList == 0) {
+        		Project projToRemove = (Project) measureList.get(0);
+        		em.remove(projToRemove);
+        	} else if (lastSelectedList == 1) {
+        		Task taskToRemove = (Task) measureList.get(0);
+        		em.remove(taskToRemove);
+        	} else {
+        		MeasureEntry mesToRemove = (MeasureEntry) measureList.get(0);
+        		em.remove(mesToRemove);
+        	}
+        	
+        	em.getTransaction().commit();
+         
+        }
+        catch (Exception e) {
+        	em.getTransaction().rollback();
+            e.printStackTrace();
+        }
+        finally{
+            emf.close();
+        }
+    } 
+    
+    private void btnEditMouseClicked(java.awt.event.MouseEvent evt) {                                     
+        if (lastSelectedList == 0) {
+        	Project selectedProject = (Project) jlProjects.getSelectedValue();
+    		
+    		if (selectedProject == null) {
+    			return;
+    		}
+    		
+        	AddEditForm f = new AddEditForm(selectedProject);
+        	f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        	f.setVisible(true);
+        } else if (lastSelectedList == 1) {
+        	Task selectedTask = (Task) jlTasks.getSelectedValue();
+    		
+    		if (selectedTask == null) {
+    			return;
+    		}
+    		
+        	AddEditForm f = new AddEditForm(selectedTask);
+        	f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        	f.setVisible(true);
+        }else {
+        	MeasureEntry selectedMeasure = (MeasureEntry) jlMeasures.getSelectedValue();
+    		
+    		if (selectedMeasure == null) {
+    			return;
+    		}
+    		
+        	AddEditForm f = new AddEditForm(selectedMeasure, jtfUserName.getText());
+        	f.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        	f.setVisible(true);
+        }
+    }   
     
     private boolean login() {
     	boolean ret = false;

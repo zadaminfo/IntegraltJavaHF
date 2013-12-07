@@ -93,6 +93,6 @@ public class MeasureEntry {
 	
     @Override
     public String toString() {
-    	return String.valueOf(duration) + " - " + creationDate;
+    	return user.getName() + ": " + String.valueOf(duration) + "h - " + creationDate;
     }
 }
